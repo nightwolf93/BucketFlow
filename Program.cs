@@ -14,6 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 builder.Services.AddSingleton<IApiKeyAuthenticationService, ApiKeyAuthenticationService>();
 builder.Services.AddHostedService(sp => (ApiKeyAuthenticationService)sp.GetRequiredService<IApiKeyAuthenticationService>());
 builder.Services.AddSingleton<IBucketService, BucketService>();
@@ -25,6 +34,9 @@ var app = builder.Build();
 // Middleware
 app.UseSwagger();
 app.UseSwaggerUI();
+
+// Ajouter le middleware CORS avant les autres middleware
+app.UseCors("AllowAll");
 
 // Auth Middleware
 app.Use(async (context, next) =>
