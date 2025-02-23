@@ -1,0 +1,86 @@
+# Fichiers de configuration sensibles
+keys.json
+buckets.json
+
+# Dossiers build
+bin/
+obj/
+out/
+
+# Fichiers de build Visual Studio
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+
+# Fichiers de package NuGet
+*.nupkg
+# Dossier packages NuGet
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de logs
+logs/
+*.log
+npm-debug.log*
+
+# Fichiers de test
+TestResults/
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Fichiers de publication
+publish/
+*.[Pp]ublish.xml
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Fichiers de sauvegarde
+*~
+*.bak
+
+# Fichiers de test
+test/
+
+appsettings.json
+appsettings.Development.json

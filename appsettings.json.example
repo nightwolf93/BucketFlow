@@ -1,0 +1,14 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "Replication": {
+    "IsMaster": true,
+    "SlaveUrl": "http://localhost:5000",
+    "ApiKey": "local-api-key"
+  }
+}
