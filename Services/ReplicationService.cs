@@ -16,6 +16,8 @@ public interface IReplicationService
     Task ReplicateDeleteBucket(string name);
     Task ReplicateAddData(string bucketName, JsonObject data);
     Task ReplicateDeleteData(string bucketName, SearchQueryParameters parameters);
+    Task ReplicateFlushBucket(string bucketName);
+    Task ReplicateSetData(string bucketName, JsonObject data, string keyField);
 }
 
 public class ReplicationService : IReplicationService
@@ -45,7 +47,9 @@ public class ReplicationService : IReplicationService
         CreateBucket,
         DeleteBucket,
         AddData,
-        DeleteData
+        DeleteData,
+        FlushBucket,
+        SetData
     }
 
     public ReplicationService(
@@ -117,6 +121,12 @@ public class ReplicationService : IReplicationService
                 break;
             case ReplicationType.DeleteData:
                 await ReplicateDeleteData(request.BucketName, (SearchQueryParameters)request.Data!);
+                break;
+            case ReplicationType.FlushBucket:
+                await ReplicateFlushBucket(request.BucketName);
+                break;
+            case ReplicationType.SetData:
+                await ReplicateSetData(request.BucketName, (JsonObject)request.Data!, (string)request.Data!);
                 break;
         }
     }
@@ -239,6 +249,71 @@ public class ReplicationService : IReplicationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Erreur lors de la réplication de suppression du bucket");
+        }
+    }
+
+    public async Task ReplicateFlushBucket(string bucketName)
+    {
+        if (!_isMaster) return;
+
+        if (!_isSlaveAvailable)
+        {
+            BufferRequest(ReplicationType.FlushBucket, bucketName);
+            return;
+        }
+
+        try
+        {
+            var response = await _httpClient.PostAsync(
+                $"{_slaveUrl}/api/buckets/{Uri.EscapeDataString(bucketName)}/flush?isReplication=true",
+                null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Échec de la réplication du flush du bucket {BucketName}", bucketName);
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Réponse du serveur: {Error}", errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            BufferRequest(ReplicationType.FlushBucket, bucketName);
+            _logger.LogError(ex, "Erreur lors de la réplication du flush du bucket");
+        }
+    }
+
+    public async Task ReplicateSetData(string bucketName, JsonObject data, string keyField)
+    {
+        if (!_isMaster) return;
+
+        if (!_isSlaveAvailable)
+        {
+            BufferRequest(ReplicationType.SetData, bucketName, new { Data = data, KeyField = keyField });
+            return;
+        }
+
+        try
+        {
+            var content = new StringContent(
+                JsonSerializer.Serialize(data),
+                System.Text.Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PutAsync(
+                $"{_slaveUrl}/api/buckets/{Uri.EscapeDataString(bucketName)}/data?isReplication=true&keyField={Uri.EscapeDataString(keyField)}",
+                content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Échec de la réplication du set de données pour le bucket {BucketName}", bucketName);
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Réponse du serveur: {Error}", errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            BufferRequest(ReplicationType.SetData, bucketName, new { Data = data, KeyField = keyField });
+            _logger.LogError(ex, "Erreur lors de la réplication du set de données");
         }
     }
 } 

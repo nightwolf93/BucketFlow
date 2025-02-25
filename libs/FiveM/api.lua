@@ -51,4 +51,26 @@ exports("DeleteData", function(bucketName, queryParams, cb)
         queryParams and ("query=" .. queryParams) or ""
     )
     makeRequest(endpoint, "DELETE", nil, cb)
+end)
+
+exports("SetData", function(bucketName, data, keyField, cb)
+    -- Vérifier que data est un objet et non un tableau
+    if type(data) == "table" and #data > 0 then
+        -- Si c'est un tableau, prendre le premier élément
+        data = data[1]
+    end
+
+    -- S'assurer que c'est un objet valide
+    if type(data) ~= "table" then
+        if cb then
+            cb(false, "Les données doivent être un objet")
+        end
+        return
+    end
+
+    local endpoint = string.format("/buckets/%s/data?keyField=%s", 
+        bucketName,
+        keyField or ""
+    )
+    makeRequest(endpoint, "PUT", data, cb)
 end) 

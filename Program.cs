@@ -99,8 +99,10 @@ app.MapPost("/api/buckets/{name}/data", async ([FromRoute] string name, [FromBod
 .WithName("AddData")
 .WithOpenApi();
 
-app.MapGet("/api/buckets/{name}/data", async ([FromRoute] string name, 
-    HttpContext context, [FromServices] IBucketService bucketService) =>
+app.MapGet("/api/buckets/{name}/data", async (
+    [FromRoute] string name,
+    HttpContext context,
+    [FromServices] IBucketService bucketService) =>
 {
     try
     {
@@ -113,12 +115,20 @@ app.MapGet("/api/buckets/{name}/data", async ([FromRoute] string name,
         }
 
         var parsedParams = SearchQueryParameters.FromJson(jsonObject);
-        var data = await bucketService.QueryDataAsync(name, parsedParams);
-        return Results.Ok(new ApiResponse<IEnumerable<JsonObject>> { Success = true, Data = data });
+        var result = await bucketService.QueryDataAsync(name, parsedParams);
+        return Results.Ok(new ApiResponse<PaginatedResult<JsonObject>>
+        {
+            Success = true,
+            Data = result
+        });
     }
     catch(Exception ex)
     {
-        return Results.BadRequest(new ApiResponse<object> { Success = false, Error = ex.Message });
+        return Results.BadRequest(new ApiResponse<object>
+        {
+            Success = false,
+            Error = ex.Message
+        });
     }
 })
 .WithName("QueryData")
@@ -141,6 +151,26 @@ app.MapDelete("/api/buckets/{name}/data", async ([FromRoute] string name,
     }
 })
 .WithName("DeleteData")
+.WithOpenApi();
+
+app.MapPost("/api/buckets/{name}/flush", async ([FromRoute] string name, [FromServices] IBucketService bucketService) =>
+{
+    var result = await bucketService.FlushBucketAsync(name);
+    return Results.Ok(new ApiResponse<bool> { Success = result });
+})
+.WithName("FlushBucket")
+.WithOpenApi();
+
+app.MapPut("/api/buckets/{name}/data", async (
+    [FromRoute] string name,
+    [FromBody] JsonObject data,
+    [FromQuery] string keyField,
+    [FromServices] IBucketService bucketService) =>
+{
+    var result = await bucketService.SetDataAsync(name, data, keyField);
+    return Results.Ok(new ApiResponse<bool> { Success = result });
+})
+.WithName("SetBucketData")
 .WithOpenApi();
 
 // Health Check endpoint

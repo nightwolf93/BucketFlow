@@ -9,7 +9,7 @@ dotnet publish `
     --self-contained true `
     --output $outDir `
     /p:PublishSingleFile=true `
-    /p:PublishTrimmed=true
+    /p:PublishTrimmed=false
 
 # Copie des fichiers de configuration
 Copy-Item "appsettings*.json" -Destination $outDir -ErrorAction SilentlyContinue
